@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>For You 💫</title>
+  <meta name="description" content="A tiny, cute 3‑step surprise page for someone special" />
+  <style>
+    /* ====== Base + Theme ====== */
+    :root{
+      --bg1:#0f1020; /* deep space */
+      --bg2:#1a1446; /* indigo */
+      --fg:#ffffff;  /* text */
+      --muted:#cbd5e1; /* slate-300 */
+      --accent:#ffd166; /* warm gold */
+      --accent-2:#a78bfa; /* soft purple */
+      --glass: rgba(255,255,255,.10);
+      --card: rgba(255,255,255,.08);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 24px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--fg); background:
+        radial-gradient(1200px 800px at 80% -20%, #311b92 0%, transparent 60%),
+        radial-gradient(1000px 600px at -10% 120%, #0d47a1 0%, transparent 70%),
+        linear-gradient(160deg,var(--bg1),var(--bg2));
+      font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, "Noto Nastaliq Urdu", "Noto Sans", sans-serif;
+      overflow:hidden;
+    }
+
+    /* Floating stars background */
+    .stars, .stars:after, .stars:before{
+      position: absolute; content:""; top:-2000px; bottom:0; left:0; right:0;
+      background-repeat: repeat; background-size: 2000px 2000px;
+      animation: drift 120s linear infinite;
+      pointer-events:none;
+    }
+    .stars{
+      background-image: radial-gradient(2px 2px at 20px 30px, #fff8 50%, transparent 51%),
+                        radial-gradient(1px 1px at 130px 80px, #fff6 50%, transparent 51%),
+                        radial-gradient(1.5px 1.5px at 80px 120px, #fff8 50%, transparent 51%);
+      filter: drop-shadow(0 0 6px #fff5);
+    }
+    .stars:after{ background-image: radial-gradient(1px 1px at 50px 50px,#fff5 50%,transparent 51%); animation-duration:180s; }
+    .stars:before{ background-image: radial-gradient(2px 2px at 90px 20px,#fff5 50%,transparent 51%); animation-duration:240s; }
+    @keyframes drift { from{transform: translateY(0)} to{transform: translateY(2000px)} }
+
+    /* Layout */
+    .wrap{ position:relative; width:100%; height:100%; display:grid; place-items:center; padding:24px; }
+    .card{
+      width:min(680px, 92vw);
+      background:var(--card);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px) saturate(120%);
+      -webkit-backdrop-filter: blur(10px) saturate(120%);
+      overflow:hidden;
+    }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:20px 22px; border-bottom:1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+    }
+    .logo{ display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.3px; }
+    .logo .dot{ width:12px; height:12px; border-radius:99px; background: conic-gradient(from 0deg, var(--accent), var(--accent-2)); box-shadow:0 0 20px #fff4; }
+    .tag{ font-size:.86rem; color:var(--muted); }
+
+    main{ padding: 28px 24px 24px; }
+
+    /* Sections ("pages") */
+    .section{ display:none; opacity:0; transform: translateY(8px) scale(.995); transition: opacity .5s ease, transform .5s ease; }
+    .section.active{ display:block; opacity:1; transform: translateY(0) scale(1); }
+
+    h1{ margin:0 0 10px; font-size: clamp(24px, 5vw, 40px); line-height:1.15; }
+    p.lead{ margin:0 0 16px; font-size: clamp(16px, 3.8vw, 20px); color: var(--muted); }
+
+    /* Cute divider */
+    .divider{ display:flex; align-items:center; gap:10px; margin:18px 0; opacity:.9 }
+    .divider::before, .divider::after{ content:""; height:1px; flex:1; background: linear-gradient(90deg, transparent, #ffffff45, transparent); }
+
+    /* Buttons */
+    .actions{ display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+    button, .ghost{
+      appearance:none; border:none; cursor:pointer; padding:12px 16px; border-radius: 14px; font-weight:700;
+      transition: transform .12s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+    }
+    .cta{ background: linear-gradient(135deg, var(--accent), #fff3b0); color:#2a2438; box-shadow:0 8px 24px rgba(255,209,102,.35); }
+    .cta:hover{ transform: translateY(-2px) scale(1.02); }
+    .ghost{ background: transparent; color: var(--fg); border:1px dashed rgba(255,255,255,.28); }
+
+    /* Footer */
+    footer{ padding:14px 18px 18px; display:flex; justify-content:space-between; align-items:center; color:#c7c8ff; font-size:.85rem; opacity:.9 }
+    .hint{ opacity:.8 }
+
+    /* Confetti Canvas */
+    #confetti{ position:fixed; inset:0; pointer-events:none; }
+
+    /* Heart floating */
+    .float-heart{ position: fixed; font-size:16px; pointer-events:none; animation: pop 1.2s ease forwards; }
+    @keyframes pop{ 0%{ transform: translateY(0) scale(.8); opacity:1 } 100%{ transform: translateY(-80px) scale(1.6); opacity:0 } }
+
+    /* Mobile tweaks */
+    @media (max-width:480px){
+      header{ padding:16px 18px }
+      main{ padding:22px 18px }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div class="stars"></div>
+
+  <div class="wrap">
+    <div class="card" role="region" aria-live="polite">
+      <header>
+        <div class="logo"><span class="dot"></span><span id="siteTitle">For You 💫</span></div>
+        <span class="tag" id="tagline">tiny surprise</span>
+      </header>
+      <main>
+        <!-- Section 1 -->
+        <section class="section active" id="s1">
+          <h1>Here Something Special For You Eshuuuu ✨</h1>
+          <p class="lead">ایک چھوٹا سا راز… click کرو اور magic دیکھو۔</p>
+          <div class="divider">💛</div>
+          <div class="actions">
+            <button class="cta" data-next="s2" aria-label="Open the surprise">Here’s something for you →</button>
+            <button class="ghost" id="heartBtn" aria-label="send a tiny heart">♥</button>
+          </div>
+        </section>
+
+        <!-- Section 2 -->
+        <section class="section" id="s2">
+          <h1>اگلا مہینہ ✨ بہت خاص ہونے والا ہے</h1>
+          <p class="lead">مجھے لگتا ہے یہ month pure vibes لے کر آئے گا — خوشیاں، laughs اور sweet moments۔</p>
+          <div class="divider">🌙</div>
+          <div class="actions">
+            <button class="cta" data-next="s3">See more →</button>
+            <button class="ghost" data-prev="s1">← پیچھے</button>
+          </div>
+        </section>
+
+        <!-- Section 3 -->
+        <section class="section" id="s3">
+          <h1>کیونکہ… ایک چاند کا Birthday ہے! 🎂🌙</h1>
+          <p class="lead" id="finalLine">Happy Early Birthday, <span id="nameSpan">Eshuuu</span>! <span id="dateSpan">(DD Month)</span></p>
+          <div class="divider">🎁</div>
+          <div class="actions">
+            <button class="cta" id="celebrateBtn">Celebrate 🎉</button>
+            <button class="ghost" data-prev="s2">← واپس</button>
+          </div>
+        </section>
+      </main>
+      <footer>
+        <span class="hint">I think Special Person k liye Wish b Special honi chahiye ↓</span>
+        <span>💕</span>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ====== Quick Settings (edit these!) ======
+    const SETTINGS = {
+      yourName: "Wajahat Khan",     // your signature (optional)
+      crushName: "Aleeshy",            // their name/nickname (shows in last screen)
+      birthdayDate: "12 October",   // how you want to show the date
+      tagline: "tiny surprise",     // small text in header
+      pageTitle: "For You 💫"        // browser tab + brand
+    };
+
+    // Apply settings
+    document.title = SETTINGS.pageTitle;
+    document.getElementById('siteTitle').textContent = SETTINGS.pageTitle;
+    document.getElementById('tagline').textContent = SETTINGS.tagline;
+    document.getElementById('nameSpan').textContent = SETTINGS.crushName;
+    document.getElementById('dateSpan').textContent = `(${SETTINGS.birthdayDate})`;
+
+    // ====== Simple pager ======
+    const sections = [...document.querySelectorAll('.section')];
+    function show(id){
+      sections.forEach(s=>{ s.classList.toggle('active', s.id===id); });
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+    document.addEventListener('click', (e)=>{
+      const next = e.target.closest('[data-next]');
+      const prev = e.target.closest('[data-prev]');
+      if(next){ show(next.dataset.next); ping(); }
+      if(prev){ show(prev.dataset.prev); }
+    });
+
+    // ====== Tiny confetti ======
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    let confettiPieces = [];
+    function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+    addEventListener('resize', resize); resize();
+
+    function makeConfetti(n=160){
+      confettiPieces = Array.from({length:n}).map(()=>({
+        x: Math.random()*canvas.width,
+        y: -10 - Math.random()*canvas.height,
+        r: 2 + Math.random()*4,
+        s: 0.5 + Math.random()*1.5,
+        a: Math.random()*Math.PI*2
+      }));
+    }
+
+    function drawConfetti(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      confettiPieces.forEach(p=>{
+        p.y += p.s*2.2; p.x += Math.sin(p.a+=0.02); // drift
+        if(p.y>canvas.height+10){ p.y=-10; p.x=Math.random()*canvas.width; }
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle = ["#ffd166","#a78bfa","#8ce0ff","#ff9de2"][Math.floor(Math.random()*4)];
+        ctx.fill();
+      });
+      requestAnimationFrame(drawConfetti);
+    }
+
+    // Heart button easter egg
+    const heartBtn = document.getElementById('heartBtn');
+    heartBtn.addEventListener('click', (e)=>{
+      const h = document.createElement('div');
+      h.className='float-heart'; h.textContent='❤';
+      h.style.left = (e.clientX||innerWidth/2)+'px';
+      h.style.top = (e.clientY||innerHeight/2)+'px';
+      document.body.appendChild(h);
+      setTimeout(()=>h.remove(),1200);
+    });
+
+    function ping(){
+      // small bounce on card when moving forward
+      const card = document.querySelector('.card');
+      card.animate([
+        { transform:'translateY(0)' },
+        { transform:'translateY(-6px)' },
+        { transform:'translateY(0)' }
+      ],{ duration:260, easing:'ease-out' });
+    }
+
+    // Celebrate button -> confetti burst + sweet line
+    const celebrateBtn = document.getElementById('celebrateBtn');
+    celebrateBtn.addEventListener('click', ()=>{
+      makeConfetti(200);
+      drawConfetti();
+      celebrateBtn.disabled = true;
+      const line = document.getElementById('finalLine');
+      line.innerHTML = `Happy Birthday Aleeshy, <strong>${SETTINGS.Crush}</strong>! ${SETTINGS.yourName ? '— ' + SETTINGS.yourName : 'Wajahat'}`;
+      // auto scroll little bounce
+      ping();
+      setTimeout(()=>celebrateBtn.disabled=false, 1200);
+    });
+
+    // Optional: Typewriter effect for first heading
+    (function typeWriter(){
+      const el = document.querySelector('#s1 h1');
+      const txt = el.textContent.trim();
+      let i=0; el.textContent='';
+      const timer = setInterval(()=>{
+        el.textContent += txt[i++];
+        if(i>=txt.length) clearInterval(timer);
+      }, 40);
+    })();
+  </script>
+</body>
+</html>
